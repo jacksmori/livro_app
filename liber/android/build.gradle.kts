@@ -22,14 +22,3 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
-subprojects {
-    project.plugins.configureEach {
-        if (project.extensions.findByName("android") != null) {
-            @Suppress("DEPRECATION")
-            val android = project.extensions.getByName("android") as com.android.build.gradle.BaseExtension
-            if (android.compileSdkVersion != null && !android.compileSdkVersion!!.contains("36")) {
-                android.compileSdkVersion = "android-36"
-            }
-        }
-    }
-}

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import 'package:file_picker/file_picker.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../widgets/book_cover_widget.dart';
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 
 class AddBookScreen extends StatefulWidget {
   const AddBookScreen({super.key});
@@ -45,22 +45,21 @@ class _AddBookScreenState extends State<AddBookScreen> {
         progress: 0.0,
       );
 
-  Future<void> _pickEpub() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['epub'],
-      withData: true,
-    );
+Future<void> _pickEpub() async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['epub'],
+  );
 
-    if (result != null) {
-      setState(() {
-        if (result.files.single.path != null) {
-          _selectedEpub = File(result.files.single.path!);
-        }
-        _epubFileName = result.files.single.name;
-      });
-    }
+  if (result != null) {
+    setState(() {
+      if (result.files.single.path != null) {
+        _selectedEpub = File(result.files.single.path!);
+      }
+      _epubFileName = result.files.single.name;
+    });
   }
+}
 
   Future<void> _save() async {
     if (_titleCtrl.text.trim().isEmpty) {
