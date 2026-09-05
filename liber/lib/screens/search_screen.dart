@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../services/api_service.dart';
 import '../widgets/book_cover_widget.dart';
 import 'book_config_screen.dart';
+import 'add_book_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -17,7 +18,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final _searchCtrl = TextEditingController();
   List<Book> _results = [];
   List<Book> _all = [];
-  bool _loading = false;
+  final bool _loading = false;
   bool _searched = false;
 
   @override
@@ -33,20 +34,15 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _search(String query) {
     if (query.isEmpty) {
-      setState(() {
-        _results = [];
-        _searched = false;
-      });
+      setState(() { _results = []; _searched = false; });
       return;
     }
     setState(() {
       _searched = true;
-      _results = _all
-          .where((b) =>
-              b.title.toLowerCase().contains(query.toLowerCase()) ||
-              b.author.toLowerCase().contains(query.toLowerCase()) ||
-              b.genre.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      _results = _all.where((b) =>
+          b.title.toLowerCase().contains(query.toLowerCase()) ||
+          b.author.toLowerCase().contains(query.toLowerCase()) ||
+          b.genre.toLowerCase().contains(query.toLowerCase())).toList();
     });
   }
 
@@ -56,8 +52,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final primary = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
     final bg = isDark ? AppColors.darkBackground : AppColors.lightBackground;
     final text = isDark ? AppColors.darkText : AppColors.lightText;
-    final secondary =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final secondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
 
     return Scaffold(
@@ -123,7 +118,18 @@ class _SearchScreenState extends State<SearchScreen> {
                       icon: Icons.add_circle_outline,
                       label: 'Adicionar Novo Livro',
                       primary: primary,
-                      onTap: () {},
+                      onTap: () async {
+                        final newBook = await Navigator.push<Book>(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const AddBookScreen()),
+                        );
+                        if (newBook != null) {
+                          setState(() {
+                            _all.add(newBook);
+                          });
+                        }
+                      },
                     ),
                     const SizedBox(height: 12),
                     _ActionButton(
@@ -165,11 +171,19 @@ class _SearchScreenState extends State<SearchScreen> {
                             book: _results[i],
                             width: double.infinity,
                             height: double.infinity,
-                            onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                        BookConfigScreen(book: _results[i]))),
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          BookConfigScreen(book: _results[i])));
+                              if (result == 'deleted') {
+                                setState(() {
+                                  _all.removeWhere((b) => b.id == _results[i].id);
+                                  _results.removeWhere((b) => b.id == _results[i].id);
+                                });
+                              }
+                            },
                           );
                         },
                       ),

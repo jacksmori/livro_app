@@ -23,11 +23,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_nameCtrl.text.isEmpty ||
         _emailCtrl.text.isEmpty ||
         _passCtrl.text.isEmpty ||
-        _confirmCtrl.text.isEmpty) return;
+        _confirmCtrl.text.isEmpty) {
+      return;
+    }
 
     if (_passCtrl.text != _confirmCtrl.text) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Senhas não conferem')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Senhas não conferem')));
       return;
     }
 
@@ -37,18 +39,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _loading = false);
     if (!mounted) return;
 
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-        (route) => false);
+    Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()), (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
-    final secondary =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final secondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Scaffold(
       body: SafeArea(
@@ -70,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle),
                     child: const Icon(Icons.person_add_outlined,
                         color: Colors.white, size: 40),
@@ -128,8 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: _loading ? null : _register,
                         child: _loading
                             ? const SizedBox(
-                                width: 22,
-                                height: 22,
+                                width: 22, height: 22,
                                 child: CircularProgressIndicator(
                                     color: Colors.white, strokeWidth: 2))
                             : const Text('Confirmar'),
@@ -142,10 +140,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text('Já tem conta? ',
                             style: GoogleFonts.lato(color: secondary)),
                         GestureDetector(
-                          onTap: () => Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const LoginScreen())),
+                          onTap: () => Navigator.pushReplacement(context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen())),
                           child: Text('Login',
                               style: GoogleFonts.lato(
                                   color: primary, fontWeight: FontWeight.bold)),

@@ -23,6 +23,47 @@ class _BookConfigScreenState extends State<BookConfigScreen> {
     _book = widget.book;
   }
 
+  Future<void> _confirmDelete() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final text = isDark ? AppColors.darkText : AppColors.lightText;
+    final secondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Excluir livro',
+            style: GoogleFonts.playfairDisplay(
+                color: text, fontWeight: FontWeight.bold)),
+        content: Text(
+          'Tem certeza que deseja excluir "${_book.title}"? Esta ação não pode ser desfeita.',
+          style: GoogleFonts.lato(color: secondary, fontSize: 14, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancelar',
+                style: GoogleFonts.lato(color: secondary, fontWeight: FontWeight.w600)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Excluir',
+                style: GoogleFonts.lato(
+                    color: Colors.red[400], fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ApiService.deleteBook(_book.id);
+      if (!mounted) return;
+      Navigator.pop(context, 'deleted'); // sinaliza que foi excluído
+    }
+  }
+
   Future<void> _toggleFavorite() async {
     await ApiService.toggleFavorite(_book.id);
     setState(() => _book = _book.copyWith(isFavorite: !_book.isFavorite));
@@ -36,8 +77,7 @@ class _BookConfigScreenState extends State<BookConfigScreen> {
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final card = isDark ? AppColors.darkCard : AppColors.lightCard;
     final text = isDark ? AppColors.darkText : AppColors.lightText;
-    final secondary =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final secondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Scaffold(
       backgroundColor: bg,
@@ -112,7 +152,7 @@ class _BookConfigScreenState extends State<BookConfigScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: primary.withOpacity(0.15),
+                                color: primary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(_book.genre,
@@ -128,9 +168,8 @@ class _BookConfigScreenState extends State<BookConfigScreen> {
                                   Expanded(
                                     child: LinearProgressIndicator(
                                       value: _book.progress,
-                                      backgroundColor: isDark
-                                          ? AppColors.darkBorder
-                                          : AppColors.lightBorder,
+                                      backgroundColor:
+                                          isDark ? AppColors.darkBorder : AppColors.lightBorder,
                                       color: primary,
                                       minHeight: 5,
                                       borderRadius: BorderRadius.circular(4),
@@ -175,12 +214,8 @@ class _BookConfigScreenState extends State<BookConfigScreen> {
                   ),
                   const SizedBox(height: 12),
                   _ConfigButton(
-                    icon: _book.isFavorite
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    label: _book.isFavorite
-                        ? 'Remover Favorito'
-                        : 'Salvar a livros',
+                    icon: _book.isFavorite ? Icons.favorite : Icons.favorite_border,
+                    label: _book.isFavorite ? 'Remover Favorito' : 'Salvar a livros',
                     primary: primary,
                     card: card,
                     text: text,
@@ -194,6 +229,18 @@ class _BookConfigScreenState extends State<BookConfigScreen> {
                     card: card,
                     text: text,
                     onTap: () {},
+                  ),
+                  const SizedBox(height: 24),
+                  // Zona de perigo
+                  Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  const SizedBox(height: 12),
+                  _ConfigButton(
+                    icon: Icons.delete_outline,
+                    label: 'Excluir Livro',
+                    primary: Colors.red[400]!,
+                    card: Colors.red.withValues(alpha: isDark ? 0.12 : 0.07),
+                    text: Colors.red[400]!,
+                    onTap: _confirmDelete,
                   ),
                 ],
               ),

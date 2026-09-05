@@ -31,11 +31,8 @@ class LandingScreen extends StatelessWidget {
                   color: primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.menu_book_rounded,
-                  color: Colors.white,
-                  size: 56,
-                ),
+                child: const Icon(Icons.menu_book_rounded,
+                    color: Colors.white, size: 56),
               ),
               const SizedBox(height: 32),
               Text(
@@ -52,9 +49,7 @@ class LandingScreen extends StatelessWidget {
                 'Sua biblioteca pessoal sempre com você',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
-                  color: isDark
-                      ? AppColors.darkTextSecondary
-                      : AppColors.lightTextSecondary,
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                   fontSize: 15,
                 ),
               ),
@@ -63,10 +58,8 @@ class LandingScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  ),
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen())),
                   child: const Text('Login'),
                 ),
               ),
@@ -74,10 +67,8 @@ class LandingScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  ),
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const RegisterScreen())),
                   child: const Text('Cadastre-se'),
                 ),
               ),

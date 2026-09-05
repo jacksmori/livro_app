@@ -1,7 +1,7 @@
-name: liber
+name: bookapp
 description: App de leitura de livros com modo claro e escuro
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -17,6 +17,7 @@ dependencies:
   flutter_svg: ^2.0.9
   shimmer: ^3.0.0
   lottie: ^3.0.0
+  file_picker: ^8.1.2
 
 dev_dependencies:
   flutter_test:

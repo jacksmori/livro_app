@@ -19,32 +19,43 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
 
   Future<void> _login() async {
-    if (_emailCtrl.text.isEmpty || _passCtrl.text.isEmpty) return;
-    setState(() => _loading = true);
-    final user = await ApiService.login(_emailCtrl.text, _passCtrl.text);
-    setState(() => _loading = false);
-    if (!mounted) return;
-    if (user != null) {
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false);
-    } else {
-      // Demo mode - go directly
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false);
-    }
+  if (_emailCtrl.text.isEmpty || _passCtrl.text.isEmpty) return;
+
+  setState(() => _loading = true);
+
+  final user = await ApiService.login(
+    _emailCtrl.text,
+    _passCtrl.text,
+  );
+
+  setState(() => _loading = false);
+
+  if (!mounted) return;
+
+  if (user != null) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const HomeScreen(),
+      ),
+      (route) => false,
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('E-mail ou senha inválidos'),
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
+    // ignore: unused_local_variable
     final text = isDark ? AppColors.darkText : AppColors.lightText;
-    final secondary =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final secondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Scaffold(
       body: SafeArea(
@@ -67,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.person_outline,
@@ -87,8 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     Text('Faça login para continuar lendo',
                         textAlign: TextAlign.center,
-                        style:
-                            GoogleFonts.lato(color: secondary, fontSize: 14)),
+                        style: GoogleFonts.lato(color: secondary, fontSize: 14)),
                     const SizedBox(height: 32),
                     TextField(
                       controller: _emailCtrl,
@@ -106,9 +116,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Senha',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscure
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined),
+                          icon: Icon(
+                              _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
@@ -134,10 +143,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text('Não tem conta? ',
                             style: GoogleFonts.lato(color: secondary)),
                         GestureDetector(
-                          onTap: () => Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const RegisterScreen())),
+                          onTap: () => Navigator.pushReplacement(context,
+                              MaterialPageRoute(builder: (_) => const RegisterScreen())),
                           child: Text('Cadastre-se',
                               style: GoogleFonts.lato(
                                   color: primary, fontWeight: FontWeight.bold)),

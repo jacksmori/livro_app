@@ -3,7 +3,7 @@ class Book {
   final String title;
   final String author;
   final String coverUrl;
-  final String content;
+  final String epubPath;
   final String genre;
   final bool isFavorite;
   final double progress;
@@ -13,7 +13,7 @@ class Book {
     required this.title,
     required this.author,
     required this.coverUrl,
-    required this.content,
+    required this.epubPath,
     required this.genre,
     this.isFavorite = false,
     this.progress = 0.0,
@@ -25,7 +25,7 @@ class Book {
       title: json['title'],
       author: json['author'],
       coverUrl: json['cover_url'] ?? '',
-      content: json['content'] ?? '',
+      epubPath: json['epub_path'] ?? '',
       genre: json['genre'] ?? '',
       isFavorite: json['is_favorite'] ?? false,
       progress: (json['progress'] ?? 0.0).toDouble(),
@@ -38,7 +38,7 @@ class Book {
       'title': title,
       'author': author,
       'cover_url': coverUrl,
-      'content': content,
+      'epub_path': epubPath,
       'genre': genre,
       'is_favorite': isFavorite,
       'progress': progress,
@@ -51,7 +51,7 @@ class Book {
       title: title,
       author: author,
       coverUrl: coverUrl,
-      content: content,
+      epubPath: epubPath,
       genre: genre,
       isFavorite: isFavorite ?? this.isFavorite,
       progress: progress ?? this.progress,

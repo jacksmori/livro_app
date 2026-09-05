@@ -1,12 +1,14 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 import sqlite3
 import hashlib
 import secrets
 import os
+import shutil
 
 app = FastAPI(title="BookShelf API", version="1.0.0")
 
@@ -16,6 +18,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+os.makedirs("uploads", exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 security = HTTPBearer(auto_error=False)
 DB_PATH = "bookshelf.db"
@@ -46,7 +52,7 @@ def init_db():
             title TEXT NOT NULL,
             author TEXT NOT NULL,
             cover_url TEXT DEFAULT '',
-            content TEXT DEFAULT '',
+            epub_path TEXT DEFAULT '',
             genre TEXT DEFAULT 'General'
         );
         CREATE TABLE IF NOT EXISTS user_books (
@@ -69,7 +75,7 @@ def init_db():
             ("Espelhos Partidos", "Luana Costa", "", PROLOGUE_TEXT, "Drama"),
         ]
         c.executemany(
-            "INSERT INTO books (title, author, cover_url, content, genre) VALUES (?,?,?,?,?)",
+            "INSERT INTO books (title, author, cover_url, epub_path, genre) VALUES (?,?,?,?,?)",
             books
         )
     conn.commit()
@@ -168,6 +174,18 @@ def logout(current_user=Depends(get_current_user), db: sqlite3.Connection = Depe
     return {"message": "Logout realizado"}
 
 # ── Books routes ──────────────────────────────────────────────────────────────
+@app.post("/books/upload")
+def upload_book(
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user)
+):
+   file_location = f"uploads/{current_user['id']}_{file.filename}"
+   
+   with open(file_location, "wb") as file_object:
+        shutil.copyfileobj(file.file, file_object)
+
+        return {"epub_path": f"/uploads/{file.filename}"}
+
 
 @app.get("/books")
 def get_books(
@@ -196,7 +214,29 @@ def get_books(
         })
     return result
 
-@app.get("/books/favorites")
+class BookCreate(BaseModel):
+    title: str
+    author: str
+    genre: str = "General"
+    epub_path: str = ""
+    cover_url: str = ""
+
+@app.post("/books", status_code=201)
+def create_book(
+    req: BookCreate,
+    current_user=Depends(get_current_user),
+    db: sqlite3.Connection = Depends(get_db)
+):
+    cursor = db.execute(
+        "INSERT INTO books (title, author, cover_url, epub_path, genre) VALUES (?,?,?,?,?)",
+        (req.title, req.author, req.cover_url, req.epub_path, req.genre)
+    )
+    db.commit()
+    book_id = cursor.lastrowid
+    book = db.execute("SELECT * FROM books WHERE id = ?", (book_id,)).fetchone()
+    return {**dict(book), "is_favorite": False, "progress": 0.0}
+
+
 def get_favorites(
     current_user=Depends(get_current_user),
     db: sqlite3.Connection = Depends(get_db)
@@ -257,7 +297,21 @@ def update_progress(
     db.commit()
     return {"message": "Progresso salvo"}
 
-@app.get("/health")
+@app.delete("/books/{book_id}")
+def delete_book(
+    book_id: int,
+    current_user=Depends(get_current_user),
+    db: sqlite3.Connection = Depends(get_db)
+):
+    book = db.execute("SELECT id FROM books WHERE id = ?", (book_id,)).fetchone()
+    if not book:
+        raise HTTPException(status_code=404, detail="Livro não encontrado")
+    db.execute("DELETE FROM user_books WHERE book_id = ?", (book_id,))
+    db.execute("DELETE FROM books WHERE id = ?", (book_id,))
+    db.commit()
+    return {"message": "Livro excluído"}
+
+
 def health():
     return {"status": "ok"}
 

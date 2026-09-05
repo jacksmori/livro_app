@@ -30,10 +30,8 @@ class AppTheme {
     colorScheme: const ColorScheme.light(
       primary: AppColors.lightPrimary,
       secondary: AppColors.lightPrimaryDark,
-      background: AppColors.lightBackground,
       surface: AppColors.lightSurface,
       onPrimary: Colors.white,
-      onBackground: AppColors.lightText,
       onSurface: AppColors.lightText,
     ),
     scaffoldBackgroundColor: AppColors.lightBackground,
@@ -120,10 +118,8 @@ class AppTheme {
     colorScheme: const ColorScheme.dark(
       primary: AppColors.darkPrimary,
       secondary: AppColors.darkPrimaryDark,
-      background: AppColors.darkBackground,
       surface: AppColors.darkSurface,
       onPrimary: Colors.white,
-      onBackground: AppColors.darkText,
       onSurface: AppColors.darkText,
     ),
     scaffoldBackgroundColor: AppColors.darkBackground,

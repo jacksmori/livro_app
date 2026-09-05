@@ -18,16 +18,11 @@ class BookCoverWidget extends StatelessWidget {
 
   Color _genreColor(String genre) {
     switch (genre.toLowerCase()) {
-      case 'fantasy':
-        return const Color(0xFF4A7B6F);
-      case 'sci-fi':
-        return const Color(0xFF3D5A8A);
-      case 'romance':
-        return const Color(0xFF8A4A5A);
-      case 'adventure':
-        return const Color(0xFF7B5E3A);
-      default:
-        return const Color(0xFF6B7C47);
+      case 'fantasy': return const Color(0xFF4A7B6F);
+      case 'sci-fi': return const Color(0xFF3D5A8A);
+      case 'romance': return const Color(0xFF8A4A5A);
+      case 'adventure': return const Color(0xFF7B5E3A);
+      default: return const Color(0xFF6B7C47);
     }
   }
 
@@ -45,7 +40,7 @@ class BookCoverWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -61,7 +56,7 @@ class BookCoverWidget extends StatelessWidget {
               width: 8,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(12),
                     bottomLeft: Radius.circular(12),
@@ -93,7 +88,7 @@ class BookCoverWidget extends StatelessWidget {
                       if (book.progress > 0) ...[
                         LinearProgressIndicator(
                           value: book.progress,
-                          backgroundColor: Colors.white.withOpacity(0.3),
+                          backgroundColor: Colors.white.withValues(alpha: 0.3),
                           color: Colors.white,
                           minHeight: 3,
                           borderRadius: BorderRadius.circular(4),
@@ -105,7 +100,7 @@ class BookCoverWidget extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 10,
                         ),
                       ),
@@ -121,7 +116,7 @@ class BookCoverWidget extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

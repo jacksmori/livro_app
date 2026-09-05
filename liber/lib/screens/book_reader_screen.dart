@@ -46,8 +46,7 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
     final text = isDark ? AppColors.darkText : AppColors.lightText;
     final primary = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final secondary =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final secondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Scaffold(
       backgroundColor: bg,
@@ -78,9 +77,7 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
                                   Text(widget.book.title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall),
+                                      style: Theme.of(context).textTheme.titleSmall),
                                   Text(widget.book.author,
                                       style: GoogleFonts.lato(
                                           color: secondary, fontSize: 12)),
@@ -88,8 +85,7 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: Icon(Icons.settings_outlined,
-                                  color: secondary),
+                              icon: Icon(Icons.settings_outlined, color: secondary),
                               onPressed: _showFontSettings,
                             ),
                           ],
@@ -100,8 +96,9 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
               // Progress indicator
               LinearProgressIndicator(
                 value: _progress,
-                backgroundColor:
-                    isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                backgroundColor: isDark
+                    ? AppColors.darkBorder
+                    : AppColors.lightBorder,
                 color: primary,
                 minHeight: 3,
               ),
@@ -123,10 +120,10 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Divider(color: primary.withOpacity(0.4)),
+                      Divider(color: primary.withValues(alpha: 0.4)),
                       const SizedBox(height: 24),
                       Text(
-                        widget.book.content,
+                        widget.book.epubPath,
                         style: GoogleFonts.lato(
                           color: text,
                           fontSize: _fontSize,
@@ -142,13 +139,14 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
               if (_showControls)
                 Container(
                   color: surface,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 10),
                   child: Row(
                     children: [
                       Text(
                         '${(_progress * 100).toInt()}%',
-                        style: GoogleFonts.lato(color: secondary, fontSize: 12),
+                        style: GoogleFonts.lato(
+                            color: secondary, fontSize: 12),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -156,8 +154,8 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
                           value: _progress,
                           onChanged: (v) {
                             setState(() => _progress = v);
-                            final target =
-                                v * _scrollCtrl.position.maxScrollExtent;
+                            final target = v *
+                                _scrollCtrl.position.maxScrollExtent;
                             _scrollCtrl.jumpTo(target);
                           },
                           activeColor: primary,

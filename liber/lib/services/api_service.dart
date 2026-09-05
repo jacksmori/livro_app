@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
+import 'dart:io';
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:8000'; // Android emulator -> localhost
-  
+  static const String baseUrl =
+      'http://192.168.0.2:8000'; // Android emulator -> localhost
+
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
@@ -27,18 +29,32 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       );
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', data['token']);
-        return User.fromJson(data['user']);
+        
+        // Verifica se a API realmente devolveu um token antes de salvar
+        if (data['token'] != null && data['user'] != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('auth_token', data['token']);
+          return User.fromJson(data['user']);
+        } else {
+          throw Exception('Resposta inválida do servidor.');
+        }
+      } else if (response.statusCode == 401 || response.statusCode == 404) {
+        // A API recusou o email ou a senha
+        throw Exception('Email ou senha inválidos.');
+      } else {
+        throw Exception('Erro no servidor: ${response.statusCode}');
       }
-    } catch (_) {}
-    return null;
+    } catch (e) {
+      // O throw avisa a tela de login que deu erro e qual foi o motivo
+      throw Exception('Falha no login: $e');
+    }
   }
 
-  static Future<User?> register(
-      String name, String email, String password, String confirmPassword) async {
+  static Future<User?> register(String name, String email, String password,
+      String confirmPassword) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/register'),
@@ -69,9 +85,8 @@ class ApiService {
   static Future<List<Book>> getBooks({String? query}) async {
     try {
       final headers = await _headers();
-      final url = query != null
-          ? '$baseUrl/books?search=$query'
-          : '$baseUrl/books';
+      final url =
+          query != null ? '$baseUrl/books?search=$query' : '$baseUrl/books';
       final response = await http.get(Uri.parse(url), headers: headers);
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
@@ -84,8 +99,8 @@ class ApiService {
   static Future<List<Book>> getFavorites() async {
     try {
       final headers = await _headers();
-      final response = await http.get(
-          Uri.parse('$baseUrl/books/favorites'), headers: headers);
+      final response = await http.get(Uri.parse('$baseUrl/books/favorites'),
+          headers: headers);
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         return data.map((e) => Book.fromJson(e)).toList();
@@ -97,11 +112,79 @@ class ApiService {
   static Future<bool> toggleFavorite(int bookId) async {
     try {
       final headers = await _headers();
-      final response = await http.post(
-          Uri.parse('$baseUrl/books/$bookId/favorite'), headers: headers);
+      final response = await http
+          .post(Uri.parse('$baseUrl/books/$bookId/favorite'), headers: headers);
       return response.statusCode == 200;
     } catch (_) {}
     return false;
+  }
+
+  static Future<bool> deleteBook(int bookId) async {
+    try {
+      final headers = await _headers();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/books/$bookId'),
+        headers: headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {}
+    return true; // modo offline: assume sucesso
+  }
+
+  static Future<String?> uploadEpub(File file) async {
+    try {
+      final token = await getToken();
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload'));
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var reponseBody = await response.stream.bytesToString();
+        var data = jsonDecode(reponseBody);
+        return data['epub_path'];
+      }
+    } catch (e) {
+      print("Erro no upload do Epub: $e");
+    }
+    return null;
+  }
+
+  static Future<Book?> addBook({
+    required String title,
+    required String author,
+    required String genre,
+    required String epubPath,
+  }) async {
+    try {
+      final headers = await _headers();
+      final response = await http.post(
+        Uri.parse('$baseUrl/books'),
+        headers: headers,
+        body: jsonEncode({
+          'title': title,
+          'author': author,
+          'genre': genre,
+          'content': epubPath,
+          'cover_url': '',
+        }),
+      );
+      if (response.statusCode == 201) {
+        return Book.fromJson(jsonDecode(response.body));
+      }
+    } catch (_) {}
+    // Fallback mock: cria localmente com id temporário
+    final newBook = Book(
+      id: DateTime.now().millisecondsSinceEpoch,
+      title: title,
+      author: author,
+      coverUrl: '',
+      epubPath: epubPath,
+      genre: genre,
+    );
+    _mockBooks().add(newBook); // não persiste, mas retorna o objeto
+    return newBook;
   }
 
   static Future<bool> updateProgress(int bookId, double progress) async {
@@ -125,7 +208,7 @@ class ApiService {
         title: 'The Silent Forest',
         author: 'Elena Marsh',
         coverUrl: '',
-        content: _prologueText(),
+        epubPath: _prologueText(),
         genre: 'Fantasy',
         isFavorite: true,
         progress: 0.35,
@@ -135,7 +218,7 @@ class ApiService {
         title: 'Neon Horizons',
         author: 'J. Carvalho',
         coverUrl: '',
-        content: _prologueText(),
+        epubPath: _prologueText(),
         genre: 'Sci-Fi',
         isFavorite: false,
         progress: 0.0,
@@ -145,7 +228,7 @@ class ApiService {
         title: 'Cartas ao Vento',
         author: 'Ana Lima',
         coverUrl: '',
-        content: _prologueText(),
+        epubPath: _prologueText(),
         genre: 'Romance',
         isFavorite: true,
         progress: 0.72,
@@ -155,7 +238,7 @@ class ApiService {
         title: 'O Último Mapa',
         author: 'Pedro Santos',
         coverUrl: '',
-        content: _prologueText(),
+        epubPath: _prologueText(),
         genre: 'Adventure',
         isFavorite: false,
         progress: 0.1,

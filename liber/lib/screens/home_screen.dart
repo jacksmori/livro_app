@@ -6,9 +6,8 @@ import '../theme/theme_provider.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../widgets/book_cover_widget.dart';
-import 'search_screen.dart';
-import 'book_reader_screen.dart';
 import 'book_config_screen.dart';
+import 'add_book_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -43,8 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final bg = isDark ? AppColors.darkBackground : AppColors.lightBackground;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final text = isDark ? AppColors.darkText : AppColors.lightText;
-    final secondary =
-        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final secondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Scaffold(
       backgroundColor: bg,
@@ -59,8 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration:
-                        BoxDecoration(color: primary, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                        color: primary, shape: BoxShape.circle),
                     child: const Icon(Icons.menu_book_rounded,
                         color: Colors.white, size: 22),
                   ),
@@ -68,9 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Consumer<ThemeProvider>(
                     builder: (context, tp, _) => IconButton(
                       icon: Icon(
-                        tp.isDark
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined,
+                        tp.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
                         color: secondary,
                       ),
                       onPressed: tp.toggleTheme,
@@ -88,10 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _currentIndex == 0
-                      ? _buildHomeContent(
-                          isDark, primary, bg, surface, text, secondary)
-                      : _buildFavoritesContent(
-                          isDark, primary, text, secondary),
+                      ? _buildHomeContent(isDark, primary, bg, surface, text, secondary)
+                      : _buildFavoritesContent(isDark, primary, text, secondary),
             ),
           ],
         ),
@@ -100,8 +94,13 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
               backgroundColor: primary,
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const SearchScreen())),
+              onPressed: () async {
+                final newBook = await Navigator.push<Book>(context,
+                    MaterialPageRoute(builder: (_) => const AddBookScreen()));
+                if (newBook != null) {
+                  setState(() => _books.add(newBook));
+                }
+              },
               child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
@@ -159,11 +158,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 book: book,
                 width: double.infinity,
                 height: double.infinity,
-                onTap: () => Navigator.push(
+                onTap: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (_) => BookConfigScreen(book: book)),
-                ),
+                );
+                if (result == 'deleted') {
+                  setState(() => _books.removeWhere((b) => b.id == book.id));
+                }
+              },
               );
             },
           ),
@@ -202,23 +206,25 @@ class _HomeScreenState extends State<HomeScreen> {
           book: favs[i],
           width: double.infinity,
           height: double.infinity,
-          onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => BookConfigScreen(book: favs[i]))),
+          onTap: () async {
+            final result = await Navigator.push(context,
+                MaterialPageRoute(builder: (_) => BookConfigScreen(book: favs[i])));
+            if (result == 'deleted') {
+              setState(() => _books.removeWhere((b) => b.id == favs[i].id));
+            }
+          },
         );
       },
     );
   }
 
-  Widget _buildBottomNav(
-      bool isDark, Color primary, Color surface, Color secondary) {
+  Widget _buildBottomNav(bool isDark, Color primary, Color surface, Color secondary) {
     return Container(
       decoration: BoxDecoration(
         color: surface,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, -2))
         ],
@@ -230,8 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         selectedItemColor: primary,
         unselectedItemColor: secondary,
-        selectedLabelStyle:
-            GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600),
+        selectedLabelStyle: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w600),
         unselectedLabelStyle: GoogleFonts.lato(fontSize: 11),
         items: const [
           BottomNavigationBarItem(
